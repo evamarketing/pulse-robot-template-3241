@@ -21,9 +21,12 @@ export const GuestRegistrationForm = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
+    console.log('Registration form submitted with data:', formData);
+
     try {
       // Basic validation
       if (!formData.username.trim() || !formData.mobileNumber.trim()) {
+        console.log('Validation failed: Missing fields');
         toast({
           title: "Error",
           description: "Please fill in all fields",
@@ -35,6 +38,7 @@ export const GuestRegistrationForm = () => {
       // Mobile number validation (basic)
       const mobileRegex = /^[6-9]\d{9}$/;
       if (!mobileRegex.test(formData.mobileNumber)) {
+        console.log('Validation failed: Invalid mobile number format');
         toast({
           title: "Error", 
           description: "Please enter a valid 10-digit mobile number",
@@ -43,16 +47,22 @@ export const GuestRegistrationForm = () => {
         return;
       }
 
+      console.log('Validation passed, attempting to submit to database...');
+
       // Submit registration request
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('user_registration_requests')
         .insert({
           username: formData.username.trim(),
           mobile_number: formData.mobileNumber,
           status: 'pending'
-        });
+        })
+        .select();
+
+      console.log('Database response:', { data, error });
 
       if (error) {
+        console.error('Database error:', error);
         if (error.code === '23505') { // Unique constraint violation
           toast({
             title: "Error",
@@ -60,11 +70,16 @@ export const GuestRegistrationForm = () => {
             variant: "destructive"
           });
         } else {
-          throw error;
+          toast({
+            title: "Error",
+            description: `Database error: ${error.message}`,
+            variant: "destructive"
+          });
         }
         return;
       }
 
+      console.log('Registration successful:', data);
       setIsSubmitted(true);
       toast({
         title: "Success",
@@ -75,7 +90,7 @@ export const GuestRegistrationForm = () => {
       console.error('Registration error:', error);
       toast({
         title: "Error",
-        description: "Failed to submit registration request",
+        description: "Failed to submit registration request. Please try again.",
         variant: "destructive"
       });
     } finally {

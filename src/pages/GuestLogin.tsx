@@ -25,6 +25,8 @@ export default function GuestLogin() {
     e.preventDefault();
     setIsLoggingIn(true);
 
+    console.log('Login attempt with data:', loginData);
+
     try {
       // Check if user exists and is approved
       const { data, error } = await supabase
@@ -34,7 +36,10 @@ export default function GuestLogin() {
         .eq('mobile_number', loginData.mobileNumber)
         .single();
 
+      console.log('Login database response:', { data, error });
+
       if (error) {
+        console.error('Login database error:', error);
         if (error.code === 'PGRST116') { // No rows returned
           toast({
             title: "Error",
@@ -42,33 +47,45 @@ export default function GuestLogin() {
             variant: "destructive"
           });
         } else {
-          throw error;
+          toast({
+            title: "Error",
+            description: `Database error: ${error.message}`,
+            variant: "destructive"
+          });
         }
         return;
       }
 
+      console.log('User found with status:', data.status);
+
       if (data.status === 'approved') {
         setLoginStatus('success');
         // Store user session
-        localStorage.setItem('guest_user', JSON.stringify({
+        const guestUser = {
           id: data.id,
           username: data.username,
           mobileNumber: data.mobile_number,
           role: 'guest'
-        }));
+        };
+        
+        console.log('Storing guest user session:', guestUser);
+        localStorage.setItem('guest_user', JSON.stringify(guestUser));
         
         toast({
           title: "Success",
-          description: "Login successful! Redirecting...",
+          description: "Login successful! Redirecting to dashboard...",
         });
 
         // Redirect to main app after short delay
         setTimeout(() => {
+          console.log('Redirecting to home page...');
           navigate('/');
         }, 1500);
       } else if (data.status === 'pending') {
+        console.log('User registration is pending approval');
         setLoginStatus('pending');
       } else if (data.status === 'rejected') {
+        console.log('User registration was rejected');
         setLoginStatus('rejected');
       }
 
