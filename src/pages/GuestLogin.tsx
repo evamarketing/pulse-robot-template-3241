@@ -82,6 +82,14 @@ export default function GuestLogin() {
     }
   };
   if (loginStatus === 'success') {
+    // Auto-redirect after showing success message
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        navigate('/');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }, [navigate]);
+
     return <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <Card className="w-full max-w-md mx-auto">
           <CardHeader className="text-center">

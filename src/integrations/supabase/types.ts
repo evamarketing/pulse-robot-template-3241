@@ -175,6 +175,7 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          reports_to: string | null
           team_password: string | null
           updated_at: string
         }
@@ -183,6 +184,7 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          reports_to?: string | null
           team_password?: string | null
           updated_at?: string
         }
@@ -191,31 +193,19 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          reports_to?: string | null
           team_password?: string | null
           updated_at?: string
         }
-        Relationships: []
-      }
-      panchayath_locations: {
-        Row: {
-          district: string
-          id: string
-          panchayath: string
-          state: string
-        }
-        Insert: {
-          district: string
-          id?: string
-          panchayath: string
-          state: string
-        }
-        Update: {
-          district?: string
-          id?: string
-          panchayath?: string
-          state?: string
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "management_teams_reports_to_fkey"
+            columns: ["reports_to"]
+            isOneToOne: false
+            referencedRelation: "management_teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       panchayath_notes: {
         Row: {
@@ -539,6 +529,7 @@ export type Database = {
           created_at: string
           id: string
           mobile_number: string
+          panchayath_id: string | null
           status: string
           updated_at: string
           username: string
@@ -548,6 +539,7 @@ export type Database = {
           created_at?: string
           id?: string
           mobile_number: string
+          panchayath_id?: string | null
           status?: string
           updated_at?: string
           username: string
@@ -557,11 +549,20 @@ export type Database = {
           created_at?: string
           id?: string
           mobile_number?: string
+          panchayath_id?: string | null
           status?: string
           updated_at?: string
           username?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_registration_requests_panchayath_id_fkey"
+            columns: ["panchayath_id"]
+            isOneToOne: false
+            referencedRelation: "panchayaths"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -572,7 +573,6 @@ export type Database = {
     }
     Enums: {
       agent_role: "coordinator" | "supervisor" | "group-leader" | "pro"
-      registration_status: "pending" | "approved" | "rejected"
       task_priority: "high" | "medium" | "normal"
       task_status: "pending" | "completed" | "cancelled"
     }
@@ -703,7 +703,6 @@ export const Constants = {
   public: {
     Enums: {
       agent_role: ["coordinator", "supervisor", "group-leader", "pro"],
-      registration_status: ["pending", "approved", "rejected"],
       task_priority: ["high", "medium", "normal"],
       task_status: ["pending", "completed", "cancelled"],
     },
